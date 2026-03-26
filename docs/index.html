@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Value — SNS 가치 측정 서비스</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #030712;
+      --surface: #111827;
+      --border: #1f2937;
+      --indigo: #6366f1;
+      --indigo-light: #818cf8;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --dim: #4b5563;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: var(--indigo-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 10;
+    }
+    header .logo { font-size: 1.2rem; font-weight: 700; color: var(--indigo-light); }
+    header nav { display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--muted); }
+    header nav a { color: var(--muted); }
+    header nav a:hover { color: var(--text); text-decoration: none; }
+
+    .hero {
+      text-align: center;
+      padding: 6rem 2rem 4rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(99,102,241,0.15);
+      color: var(--indigo-light);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 999px;
+      padding: 0.25rem 0.9rem;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 span { color: var(--indigo-light); }
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 560px;
+      margin: 0 auto 2.5rem;
+    }
+    .btn {
+      display: inline-block;
+      background: var(--indigo);
+      color: #fff;
+      padding: 0.75rem 2rem;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #4f46e5; text-decoration: none; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      margin-left: 0.75rem;
+    }
+    .btn-ghost:hover { color: var(--text); background: var(--surface); }
+
+    /* Score preview */
+    .preview {
+      max-width: 420px;
+      margin: 3rem auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+    }
+    .gauge-wrap { position: relative; width: 140px; height: 140px; margin: 0 auto 1rem; }
+    .gauge-wrap svg { transform: rotate(-90deg); }
+    .gauge-center {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .gauge-center .score { font-size: 2.2rem; font-weight: 800; }
+    .gauge-center .denom { font-size: 0.75rem; color: var(--muted); }
+    .grade { font-size: 3rem; font-weight: 900; color: #facc15; margin-bottom: 0.25rem; }
+    .grade-label { color: var(--muted); font-size: 0.8rem; }
+    .platform-chips { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+    .chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .chip.active { border-color: var(--indigo); color: var(--indigo-light); }
+
+    section { max-width: 1000px; margin: 0 auto; padding: 5rem 2rem; }
+    section h2 { font-size: 1.75rem; font-weight: 700; margin-bottom: 2.5rem; text-align: center; }
+
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+    }
+    .feature-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+    .feature-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-card p { color: var(--muted); font-size: 0.875rem; }
+
+    /* Platforms */
+    .platforms { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .platform-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .platform-card .icon { font-size: 1.5rem; }
+    .platform-card .info { flex: 1; }
+    .platform-card .name { font-weight: 600; font-size: 0.9rem; }
+    .platform-card .status { font-size: 0.75rem; color: var(--muted); }
+    .tag { font-size: 0.65rem; padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; }
+    .tag.ready { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .tag.soon { background: rgba(234,179,8,0.15); color: #fbbf24; }
+
+    /* Grades */
+    .grades { display: flex; flex-direction: column; gap: 0.75rem; max-width: 560px; margin: 0 auto; }
+    .grade-row {
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.875rem 1.25rem;
+    }
+    .grade-letter { font-size: 1.5rem; font-weight: 900; width: 2rem; text-align: center; }
+    .grade-range { color: var(--muted); font-size: 0.8rem; width: 5rem; }
+    .grade-desc { color: var(--text); font-size: 0.875rem; }
+    .grade-bar-wrap { flex: 1; background: var(--border); border-radius: 999px; height: 6px; overflow: hidden; }
+    .grade-bar { height: 100%; border-radius: 999px; }
+
+    /* Stack */
+    .stack { display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; }
+    .stack-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+    .stack-item span { color: var(--text); font-weight: 500; }
+
+    /* Algo */
+    .algo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 600px) { .algo-grid { grid-template-columns: 1fr; } }
+    .algo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+    }
+    .algo-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+    .metric-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .metric-label { font-size: 0.8rem; color: var(--muted); width: 4rem; }
+    .metric-bar-wrap { flex: 1; background: var(--border); border-radius: 999px; height: 5px; }
+    .metric-bar { height: 100%; border-radius: 999px; background: var(--indigo); }
+    .metric-pct { font-size: 0.75rem; color: var(--dim); width: 2.5rem; text-align: right; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 2rem;
+      color: var(--dim);
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 640px) {
+      header nav { display: none; }
+      .algo-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Social Value</div>
+  <nav>
+    <a href="#features">기능</a>
+    <a href="#platforms">플랫폼</a>
+    <a href="#algorithm">알고리즘</a>
+    <a href="#stack">기술스택</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="badge">SNS 가치 측정 서비스</div>
+  <h1>나의 소셜 영향력,<br /><span>숫자로 확인하세요</span></h1>
+  <p>GitHub, YouTube 등 다양한 SNS 활동 데이터를 분석해<br />0~100점 + S~D 등급으로 소셜 가치를 산정합니다.</p>
+  <a href="https://github.com" class="btn">GitHub에서 보기</a>
+  <a href="#features" class="btn btn-ghost">더 알아보기</a>
+
+  <!-- Score Preview -->
+  <div class="preview">
+    <div class="gauge-wrap">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="58" fill="none" stroke="#1f2937" stroke-width="12"/>
+        <circle cx="70" cy="70" r="58" fill="none" stroke="#6366f1" stroke-width="12"
+          stroke-dasharray="364.4" stroke-dashoffset="109.3"
+          stroke-linecap="round"/>
+      </svg>
+      <div class="gauge-center">
+        <div class="score">70</div>
+        <div class="denom">/ 100</div>
+      </div>
+    </div>
+    <div class="grade">A</div>
+    <div class="grade-label">소셜 가치 등급</div>
+    <div class="platform-chips">
+      <span class="chip active">GitHub · 82</span>
+      <span class="chip active">YouTube · 58</span>
+      <span class="chip">Instagram · 미연동</span>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features">
+  <h2>주요 기능</h2>
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon">🔗</div>
+      <h3>멀티 플랫폼 연동</h3>
+      <p>GitHub, YouTube 등 다양한 SNS를 OAuth로 안전하게 연결하고 공개 데이터를 자동 수집합니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>레이더 차트 분석</h3>
+      <p>플랫폼별 강점을 레이더 차트로 시각화하여 팔로워, 조회수, 커밋 등 세부 항목을 한눈에 확인합니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>등급 산정</h3>
+      <p>로그 스케일 정규화로 공정하게 0~100점을 산정하고 S~D 등급을 부여합니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🤝</div>
+      <h3>기여도 참고 지표</h3>
+      <p>협업·프로젝트 참여 시 참여자의 소셜 가치를 기여도 산정 기준으로 활용할 수 있습니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔒</div>
+      <h3>읽기 전용 접근</h3>
+      <p>OAuth를 통해 공개 데이터만 읽으며, 게시·수정 권한은 절대 요청하지 않습니다.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <h3>점수 히스토리</h3>
+      <p>갱신할 때마다 점수를 DB에 저장하여 시간에 따른 소셜 가치 변화를 추적합니다.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Platforms -->
+<section id="platforms">
+  <h2>지원 플랫폼</h2>
+  <div class="platforms">
+    <div class="platform-card">
+      <div class="icon">🐙</div>
+      <div class="info">
+        <div class="name">GitHub</div>
+        <div class="status">팔로워 · 스타 · 커밋</div>
+      </div>
+      <span class="tag ready">연동 가능</span>
+    </div>
+    <div class="platform-card">
+      <div class="icon">▶️</div>
+      <div class="info">
+        <div class="name">YouTube</div>
+        <div class="status">구독자 · 조회수 · 좋아요</div>
+      </div>
+      <span class="tag ready">연동 가능</span>
+    </div>
+    <div class="platform-card">
+      <div class="icon">📸</div>
+      <div class="info">
+        <div class="name">Instagram</div>
+        <div class="status">팔로워 · 참여율</div>
+      </div>
+      <span class="tag soon">예정</span>
+    </div>
+    <div class="platform-card">
+      <div class="icon">🎮</div>
+      <div class="info">
+        <div class="name">치지직 / SOOP</div>
+        <div class="status">팔로워 · 시청자</div>
+      </div>
+      <span class="tag soon">예정</span>
+    </div>
+    <div class="platform-card">
+      <div class="icon">🟢</div>
+      <div class="info">
+        <div class="name">Naver 블로그</div>
+        <div class="status">방문자 · 이웃 수</div>
+      </div>
+      <span class="tag soon">예정</span>
+    </div>
+    <div class="platform-card">
+      <div class="icon">💬</div>
+      <div class="info">
+        <div class="name">Kakao</div>
+        <div class="status">확인 중</div>
+      </div>
+      <span class="tag soon">예정</span>
+    </div>
+  </div>
+</section>
+
+<!-- Algorithm -->
+<section id="algorithm">
+  <h2>점수 산정 알고리즘</h2>
+  <div class="algo-grid">
+    <div class="algo-card">
+      <h3>🐙 GitHub 점수</h3>
+      <div class="metric-row">
+        <span class="metric-label">팔로워</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:35%"></div></div>
+        <span class="metric-pct">35%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">스타</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:30%"></div></div>
+        <span class="metric-pct">30%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">커밋</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:25%"></div></div>
+        <span class="metric-pct">25%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">레포</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:10%"></div></div>
+        <span class="metric-pct">10%</span>
+      </div>
+    </div>
+    <div class="algo-card">
+      <h3>▶️ YouTube 점수</h3>
+      <div class="metric-row">
+        <span class="metric-label">구독자</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:40%"></div></div>
+        <span class="metric-pct">40%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">조회수</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:35%"></div></div>
+        <span class="metric-pct">35%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">좋아요</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:15%"></div></div>
+        <span class="metric-pct">15%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">영상수</span>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:10%"></div></div>
+        <span class="metric-pct">10%</span>
+      </div>
+    </div>
+  </div>
+  <p style="text-align:center; color:var(--muted); font-size:0.85rem; margin-top:1.5rem;">
+    로그 스케일 정규화 — <code style="color:var(--indigo-light)">min(100, log10(v+1) / log10(max+1) × 100)</code>
+  </p>
+
+  <div class="grades" style="margin-top:3rem;">
+    <h2 style="font-size:1.25rem; margin-bottom:1.5rem; text-align:left;">등급 기준</h2>
+    <div class="grade-row">
+      <span class="grade-letter" style="color:#facc15">S</span>
+      <span class="grade-range">80~100점</span>
+      <span class="grade-desc">상위 인플루언서급 영향력</span>
+      <div class="grade-bar-wrap"><div class="grade-bar" style="width:100%;background:#facc15"></div></div>
+    </div>
+    <div class="grade-row">
+      <span class="grade-letter" style="color:#4ade80">A</span>
+      <span class="grade-range">60~79점</span>
+      <span class="grade-desc">활발한 크리에이터/기여자</span>
+      <div class="grade-bar-wrap"><div class="grade-bar" style="width:79%;background:#4ade80"></div></div>
+    </div>
+    <div class="grade-row">
+      <span class="grade-letter" style="color:#60a5fa">B</span>
+      <span class="grade-range">40~59점</span>
+      <span class="grade-desc">꾸준한 활동 중</span>
+      <div class="grade-bar-wrap"><div class="grade-bar" style="width:59%;background:#60a5fa"></div></div>
+    </div>
+    <div class="grade-row">
+      <span class="grade-letter" style="color:#fb923c">C</span>
+      <span class="grade-range">20~39점</span>
+      <span class="grade-desc">기초 활동 단계</span>
+      <div class="grade-bar-wrap"><div class="grade-bar" style="width:39%;background:#fb923c"></div></div>
+    </div>
+    <div class="grade-row">
+      <span class="grade-letter" style="color:#f87171">D</span>
+      <span class="grade-range">0~19점</span>
+      <span class="grade-desc">활동 데이터 부족</span>
+      <div class="grade-bar-wrap"><div class="grade-bar" style="width:19%;background:#f87171"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack -->
+<section id="stack">
+  <h2>기술 스택</h2>
+  <div class="stack">
+    <div class="stack-item"><span>Next.js 16</span> — App Router</div>
+    <div class="stack-item"><span>TypeScript</span></div>
+    <div class="stack-item"><span>Tailwind CSS</span></div>
+    <div class="stack-item"><span>NextAuth.js v5</span> — OAuth</div>
+    <div class="stack-item"><span>Prisma 7</span> — ORM</div>
+    <div class="stack-item"><span>PostgreSQL 16</span> — DB</div>
+    <div class="stack-item"><span>Recharts</span> — 시각화</div>
+    <div class="stack-item"><span>Docker</span> — 로컬 DB</div>
+  </div>
+</section>
+
+<footer>
+  <p>Social Value · SNS 가치 측정 서비스</p>
+  <p style="margin-top:0.5rem;">Built with Next.js + Prisma + PostgreSQL</p>
+</footer>
+
+</body>
+</html>
